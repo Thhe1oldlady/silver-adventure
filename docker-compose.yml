@@ -1,0 +1,62 @@
+# Docker Compose Configuration for Development
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - LOG_LEVEL=DEBUG
+      - ORACLE_HOST=oracle
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - oracle
+      - redis
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./data:/app/data
+
+  oracle:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    environment:
+      - ORACLE_PWD=oracle123
+      - ORACLE_CHARACTERSET=AL32UTF8
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  oracle_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
