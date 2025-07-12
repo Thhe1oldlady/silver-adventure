@@ -2,18 +2,19 @@
 Test configuration and fixtures
 """
 
-import pytest
 import asyncio
 import os
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add src to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "src"))
 
-from silver_adventure.services.email_service import EmailService
 from silver_adventure.services.churn_service import ChurnService
+from silver_adventure.services.email_service import EmailService
 
 
 @pytest.fixture
@@ -50,7 +51,7 @@ def sample_customer_data():
         "partner": "Yes",
         "dependents": "No",
         "phone_service": "Yes",
-        "multiple_lines": "No"
+        "multiple_lines": "No",
     }
 
 
@@ -61,7 +62,7 @@ def sample_email_context():
         "name": "Test User",
         "email": "test@example.com",
         "company": "Test Company",
-        "custom_message": "This is a test message"
+        "custom_message": "This is a test message",
     }
 
 

@@ -5,71 +5,100 @@ This service handles the generation and sending of emails with customizable
 "golden mood" themes. It includes various templates and personalization options.
 """
 
+import logging
 import os
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
-from typing import Dict, Any, Optional, List
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-import logging
-from datetime import datetime
 import uuid
+from datetime import datetime
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Dict, List, Optional
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 logger = logging.getLogger(__name__)
 
 
 class EmailService:
     """Service for sending golden mood emails with customizable templates"""
-    
+
     def __init__(self):
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
         self.smtp_username = os.getenv("SMTP_USERNAME", "")
         self.smtp_password = os.getenv("SMTP_PASSWORD", "")
         self.from_email = os.getenv("FROM_EMAIL", "noreply@silver-adventure.com")
-        
+
         # Initialize Jinja2 environment
-        template_dir = os.path.join(os.path.dirname(__file__), "..", "templates", "email")
-        self.jinja_env = Environment(
-            loader=FileSystemLoader(template_dir) if os.path.exists(template_dir) else None,
-            autoescape=select_autoescape(['html', 'xml'])
+        template_dir = os.path.join(
+            os.path.dirname(__file__), "..", "templates", "email"
         )
-        
+        self.jinja_env = Environment(
+            loader=(
+                FileSystemLoader(template_dir) if os.path.exists(template_dir) else None
+            ),
+            autoescape=select_autoescape(["html", "xml"]),
+        )
+
         # Golden mood templates
         self.golden_mood_templates = {
             "welcome": {
                 "subject": "🌟 Welcome to Your Golden Journey! ✨",
                 "theme": "warm_welcome",
-                "colors": {"primary": "#FFD700", "secondary": "#FFA500", "accent": "#FF6B35"}
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#FFA500",
+                    "accent": "#FF6B35",
+                },
             },
             "celebration": {
                 "subject": "🎉 Time to Celebrate Your Success! 🏆",
                 "theme": "celebration",
-                "colors": {"primary": "#FFD700", "secondary": "#FF1493", "accent": "#9370DB"}
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#FF1493",
+                    "accent": "#9370DB",
+                },
             },
             "motivation": {
                 "subject": "💪 Your Daily Dose of Golden Motivation ⚡",
                 "theme": "motivation",
-                "colors": {"primary": "#FFD700", "secondary": "#32CD32", "accent": "#1E90FF"}
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#32CD32",
+                    "accent": "#1E90FF",
+                },
             },
             "appreciation": {
                 "subject": "🙏 You're Simply Amazing! 💖",
                 "theme": "appreciation",
-                "colors": {"primary": "#FFD700", "secondary": "#FF69B4", "accent": "#FF1493"}
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#FF69B4",
+                    "accent": "#FF1493",
+                },
             },
             "opportunity": {
                 "subject": "🚀 Golden Opportunity Awaits You! 🌟",
                 "theme": "opportunity",
-                "colors": {"primary": "#FFD700", "secondary": "#00CED1", "accent": "#FF4500"}
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#00CED1",
+                    "accent": "#FF4500",
+                },
             },
             "newsletter": {
                 "subject": "📰 Your Golden Newsletter is Here! ✨",
                 "theme": "newsletter",
-                "colors": {"primary": "#FFD700", "secondary": "#4169E1", "accent": "#DC143C"}
-            }
+                "colors": {
+                    "primary": "#FFD700",
+                    "secondary": "#4169E1",
+                    "accent": "#DC143C",
+                },
+            },
         }
-    
+
     def health_check(self) -> bool:
         """Check if email service is healthy"""
         try:
@@ -80,15 +109,19 @@ class EmailService:
         except Exception as e:
             logger.error(f"Email service health check failed: {str(e)}")
             return False
-    
+
     def get_available_templates(self) -> List[str]:
         """Get list of available email templates"""
         return list(self.golden_mood_templates.keys())
-    
-    def _generate_golden_mood_content(self, template: str, context: Dict[str, Any]) -> Dict[str, str]:
+
+    def _generate_golden_mood_content(
+        self, template: str, context: Dict[str, Any]
+    ) -> Dict[str, str]:
         """Generate golden mood email content based on template"""
-        template_config = self.golden_mood_templates.get(template, self.golden_mood_templates["welcome"])
-        
+        template_config = self.golden_mood_templates.get(
+            template, self.golden_mood_templates["welcome"]
+        )
+
         # Default context values
         default_context = {
             "recipient_name": context.get("name", "Friend"),
@@ -96,12 +129,12 @@ class EmailService:
             "date": datetime.now().strftime("%B %d, %Y"),
             "year": datetime.now().year,
             "colors": template_config["colors"],
-            "theme": template_config["theme"]
+            "theme": template_config["theme"],
         }
-        
+
         # Merge with provided context
         merged_context = {**default_context, **context}
-        
+
         # Template-specific content generation
         if template == "welcome":
             html_content = self._create_welcome_template(merged_context)
@@ -124,13 +157,13 @@ class EmailService:
         else:
             html_content = self._create_welcome_template(merged_context)
             text_content = self._create_welcome_text(merged_context)
-        
+
         return {
             "html": html_content,
             "text": text_content,
-            "subject": template_config["subject"]
+            "subject": template_config["subject"],
         }
-    
+
     def _create_welcome_template(self, context: Dict[str, Any]) -> str:
         """Create welcome email HTML template"""
         return f"""
@@ -178,7 +211,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_welcome_text(self, context: Dict[str, Any]) -> str:
         """Create welcome email text template"""
         return f"""
@@ -203,7 +236,7 @@ class EmailService:
         
         Making every moment shine! ✨
         """
-    
+
     def _create_celebration_template(self, context: Dict[str, Any]) -> str:
         """Create celebration email HTML template"""
         return f"""
@@ -245,7 +278,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_celebration_text(self, context: Dict[str, Any]) -> str:
         """Create celebration email text template"""
         return f"""
@@ -264,7 +297,7 @@ class EmailService:
         
         Your success is our golden moment! ✨
         """
-    
+
     def _create_motivation_template(self, context: Dict[str, Any]) -> str:
         """Create motivation email HTML template"""
         motivation_quotes = [
@@ -272,11 +305,11 @@ class EmailService:
             "Success is not final, failure is not fatal: it is the courage to continue that counts.",
             "The future belongs to those who believe in the beauty of their dreams.",
             "Your limitation—it's only your imagination.",
-            "Push yourself, because no one else is going to do it for you."
+            "Push yourself, because no one else is going to do it for you.",
         ]
-        
+
         quote = context.get("quote", motivation_quotes[0])
-        
+
         return f"""
         <!DOCTYPE html>
         <html>
@@ -323,7 +356,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_motivation_text(self, context: Dict[str, Any]) -> str:
         """Create motivation email text template"""
         return f"""
@@ -348,7 +381,7 @@ class EmailService:
         
         Your potential is limitless! ✨
         """
-    
+
     def _create_appreciation_template(self, context: Dict[str, Any]) -> str:
         """Create appreciation email HTML template"""
         return f"""
@@ -390,7 +423,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_appreciation_text(self, context: Dict[str, Any]) -> str:
         """Create appreciation email text template"""
         return f"""
@@ -411,7 +444,7 @@ class EmailService:
         
         You're one in a million! ✨
         """
-    
+
     def _create_opportunity_template(self, context: Dict[str, Any]) -> str:
         """Create opportunity email HTML template"""
         return f"""
@@ -458,7 +491,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_opportunity_text(self, context: Dict[str, Any]) -> str:
         """Create opportunity email text template"""
         return f"""
@@ -483,7 +516,7 @@ class EmailService:
         
         Your golden moment is now! ✨
         """
-    
+
     def _create_newsletter_template(self, context: Dict[str, Any]) -> str:
         """Create newsletter email HTML template"""
         return f"""
@@ -541,7 +574,7 @@ class EmailService:
         </body>
         </html>
         """
-    
+
     def _create_newsletter_text(self, context: Dict[str, Any]) -> str:
         """Create newsletter email text template"""
         return f"""
@@ -569,63 +602,65 @@ class EmailService:
         
         Building golden experiences together! ✨
         """
-    
+
     async def send_golden_mood_email(
-        self, 
-        to_email: str, 
-        template: str, 
-        subject: Optional[str] = None, 
-        context: Optional[Dict[str, Any]] = None
+        self,
+        to_email: str,
+        template: str,
+        subject: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Send a golden mood email"""
         try:
             # Generate email content
             content = self._generate_golden_mood_content(template, context or {})
-            
+
             # Use custom subject if provided
             email_subject = subject or content["subject"]
-            
+
             # Create email message
             msg = MIMEMultipart("alternative")
             msg["Subject"] = email_subject
             msg["From"] = self.from_email
             msg["To"] = to_email
-            
+
             # Create text and HTML parts
             text_part = MIMEText(content["text"], "plain")
             html_part = MIMEText(content["html"], "html")
-            
+
             # Attach parts
             msg.attach(text_part)
             msg.attach(html_part)
-            
+
             # Generate email ID for tracking
             email_id = str(uuid.uuid4())
-            
+
             # For development/testing, log the email instead of sending
             if not self.smtp_username or not self.smtp_password:
-                logger.info(f"Email would be sent to {to_email} with subject: {email_subject}")
+                logger.info(
+                    f"Email would be sent to {to_email} with subject: {email_subject}"
+                )
                 logger.info(f"Email ID: {email_id}")
                 return {
                     "email_id": email_id,
                     "status": "logged",
-                    "message": "Email logged for development (no SMTP credentials)"
+                    "message": "Email logged for development (no SMTP credentials)",
                 }
-            
+
             # Send email via SMTP
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
-            
+
             logger.info(f"Email sent successfully to {to_email} with ID: {email_id}")
-            
+
             return {
                 "email_id": email_id,
                 "status": "sent",
-                "message": "Email sent successfully"
+                "message": "Email sent successfully",
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             raise Exception(f"Email sending failed: {str(e)}")
