@@ -1,0 +1,57 @@
+# Application Configuration
+
+# Oracle Database Configuration
+oracle:
+  host: localhost
+  port: 1521
+  service: XEPDB1
+  pool_size: 20
+  pool_recycle: 3600
+  connection_timeout: 30
+
+# Machine Learning Configuration
+ml:
+  model_path: models/
+  cache_ttl: 3600
+  batch_size: 100
+  feature_names:
+    - age
+    - tenure
+    - monthly_charges
+    - total_charges
+    - contract_type_encoded
+    - payment_method_encoded
+
+# API Configuration
+api:
+  version: v1
+  cors_origins:
+    - "*"
+  rate_limit:
+    requests_per_minute: 100
+    burst_size: 10
+
+# Logging Configuration
+logging:
+  level: INFO
+  format: json
+  file: logs/app.log
+  rotation: daily
+  retention: 30
+
+# Network Configuration
+network:
+  max_connections: 100
+  connection_timeout: 30
+  read_timeout: 60
+  write_timeout: 60
+
+# Processing Configuration
+processing:
+  max_batch_size: 1000
+  processing_timeout: 300
+  max_file_size: 10MB
+  allowed_file_types:
+    - json
+    - csv
+    - xlsx
