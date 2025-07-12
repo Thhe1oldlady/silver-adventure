@@ -1,0 +1,88 @@
+{
+    "name": "Silver Adventure - Comprehensive Development Environment",
+    "image": "mcr.microsoft.com/vscode/devcontainers/python:3.11",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "ms-python.python",
+                "ms-python.pylance",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "ms-python.flake8",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.jupyter-keymap",
+                "ms-toolsai.jupyter-renderers",
+                "ms-vscode.vscode-json",
+                "redhat.vscode-yaml",
+                "tamasfe.even-better-toml",
+                "ms-vscode.test-adapter-converter",
+                "hbenl.vscode-test-explorer",
+                "ms-vscode.vscode-github-issue-notebooks",
+                "GitHub.vscode-pull-request-github",
+                "GitHub.remotehub",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-containers",
+                "ms-vscode-remote.remote-ssh",
+                "ms-vscode-remote.remote-wsl"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": false,
+                "python.linting.flake8Enabled": true,
+                "python.linting.flake8Args": ["--max-line-length=88"],
+                "python.formatting.provider": "black",
+                "python.formatting.blackArgs": ["--line-length", "88"],
+                "python.sortImports.args": ["--profile", "black"],
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": ["tests"],
+                "python.testing.unittestEnabled": false,
+                "python.testing.nosetestsEnabled": false,
+                "files.associations": {
+                    "*.yml": "yaml",
+                    "*.yaml": "yaml",
+                    "*.toml": "toml",
+                    "*.json": "json"
+                },
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": true
+                },
+                "git.autofetch": true,
+                "git.confirmSync": false,
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "workbench.colorTheme": "Default Dark+",
+                "workbench.iconTheme": "vs-seti"
+            }
+        }
+    },
+    "postCreateCommand": "pip install -r requirements.txt",
+    "remoteUser": "vscode",
+    "features": {
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.11",
+            "installTools": true
+        },
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "upgradePackages": true
+        }
+    },
+    "forwardPorts": [8000, 8080, 3000, 5000],
+    "portsAttributes": {
+        "8000": {
+            "label": "FastAPI Server",
+            "onAutoForward": "notify"
+        },
+        "8080": {
+            "label": "Alternative HTTP Server",
+            "onAutoForward": "silent"
+        }
+    }
+}
