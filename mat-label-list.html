@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mat Label List Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .mat-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #fafafa;
+        }
+        
+        .mat-card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .mat-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .labels {
+            margin: 10px 0;
+        }
+        
+        .label-tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 6px;
+        }
+        
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .stats {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .search-results {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏷️ Mat Label List Manager</h1>
+        
+        <div class="controls">
+            <h3>Add New Mat</h3>
+            <input type="text" id="matName" placeholder="Mat Name" />
+            <select id="matMaterial">
+                <option value="rubber">Rubber</option>
+                <option value="fabric">Fabric</option>
+                <option value="foam">Foam</option>
+                <option value="coir">Coir</option>
+                <option value="vinyl">Vinyl</option>
+            </select>
+            <input type="text" id="matColor" placeholder="Color" />
+            <input type="number" id="matSize" placeholder="Size (sq ft)" />
+            <input type="text" id="matLabels" placeholder="Labels (comma-separated)" />
+            <button onclick="addNewMat()">Add Mat</button>
+        </div>
+
+        <div class="controls">
+            <h3>Search & Filter</h3>
+            <input type="text" id="searchLabel" placeholder="Search by label" />
+            <button onclick="searchByLabel()">Search Labels</button>
+            
+            <select id="filterMaterial">
+                <option value="">All Materials</option>
+                <option value="rubber">Rubber</option>
+                <option value="fabric">Fabric</option>
+                <option value="foam">Foam</option>
+                <option value="coir">Coir</option>
+                <option value="vinyl">Vinyl</option>
+            </select>
+            <button onclick="filterByMaterial()">Filter</button>
+            
+            <button onclick="showAllMats()">Show All</button>
+        </div>
+
+        <div id="searchResults" class="search-results" style="display: none;">
+            <h3>Search Results</h3>
+            <div id="searchContent"></div>
+        </div>
+
+        <div id="stats" class="stats"></div>
+        
+        <div id="matList"></div>
+    </div>
+
+    <script src="mat-label-list.js"></script>
+    <script>
+        // Initialize the mat list
+        const matManager = new MatLabelList();
+        
+        // Add some sample data
+        matManager.addMat("Yoga Mat Pro", "rubber", ["exercise", "yoga", "fitness"], "purple", 6);
+        matManager.addMat("Kitchen Runner", "fabric", ["kitchen", "anti-slip", "washable"], "blue", 12);
+        matManager.addMat("Entrance Mat", "coir", ["outdoor", "entrance", "weather-resistant"], "brown", 4);
+        matManager.addMat("Meditation Cushion", "foam", ["meditation", "comfortable", "portable"], "green", 2);
+        matManager.addMat("Exercise Mat", "rubber", ["exercise", "gym", "non-slip"], "black", 8);
+
+        function renderMat(mat) {
+            return `
+                <div class="mat-card">
+                    <h3>${mat.name} (ID: ${mat.id})</h3>
+                    <div class="mat-info">
+                        <div><strong>Material:</strong> ${mat.material}</div>
+                        <div><strong>Color:</strong> ${mat.color}</div>
+                        <div><strong>Size:</strong> ${mat.size} sq ft</div>
+                        <div><strong>Created:</strong> ${new Date(mat.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="labels">
+                        <strong>Labels:</strong>
+                        ${mat.labels.map(label => `<span class="label-tag">${label}</span>`).join('')}
+                    </div>
+                    <button onclick="removeMat(${mat.id})" style="background: #e74c3c;">Remove</button>
+                </div>
+            `;
+        }
+
+        function renderMats(mats = null) {
+            const matsToRender = mats || matManager.getAllMats();
+            const matListElement = document.getElementById('matList');
+            
+            if (matsToRender.length === 0) {
+                matListElement.innerHTML = '<p>No mats to display.</p>';
+                return;
+            }
+            
+            matListElement.innerHTML = matsToRender.map(renderMat).join('');
+        }
+
+        function updateStats() {
+            const stats = matManager.getStats();
+            const statsElement = document.getElementById('stats');
+            
+            statsElement.innerHTML = `
+                <h3>📊 Collection Statistics</h3>
+                <p><strong>Total Mats:</strong> ${stats.totalMats}</p>
+                <p><strong>Materials:</strong> ${stats.materials.join(', ')} (${stats.uniqueMaterials} unique)</p>
+                <p><strong>Total Size:</strong> ${stats.totalSize} sq ft</p>
+                <p><strong>All Labels:</strong> ${stats.allLabels.join(', ')} (${stats.uniqueLabels} unique)</p>
+            `;
+        }
+
+        function addNewMat() {
+            const name = document.getElementById('matName').value;
+            const material = document.getElementById('matMaterial').value;
+            const color = document.getElementById('matColor').value || 'unknown';
+            const size = parseFloat(document.getElementById('matSize').value) || 0;
+            const labelsText = document.getElementById('matLabels').value;
+            const labels = labelsText ? labelsText.split(',').map(l => l.trim()) : [];
+            
+            if (!name) {
+                alert('Please enter a mat name');
+                return;
+            }
+            
+            matManager.addMat(name, material, labels, color, size);
+            
+            // Clear form
+            document.getElementById('matName').value = '';
+            document.getElementById('matColor').value = '';
+            document.getElementById('matSize').value = '';
+            document.getElementById('matLabels').value = '';
+            
+            refreshDisplay();
+        }
+
+        function searchByLabel() {
+            const label = document.getElementById('searchLabel').value;
+            if (!label) {
+                alert('Please enter a label to search for');
+                return;
+            }
+            
+            const results = matManager.findMatsByLabel(label);
+            showSearchResults(`Mats with label "${label}"`, results);
+        }
+
+        function filterByMaterial() {
+            const material = document.getElementById('filterMaterial').value;
+            if (!material) {
+                showAllMats();
+                return;
+            }
+            
+            const results = matManager.findMatsByMaterial(material);
+            showSearchResults(`Mats made of ${material}`, results);
+        }
+
+        function showSearchResults(title, results) {
+            const searchResultsElement = document.getElementById('searchResults');
+            const searchContentElement = document.getElementById('searchContent');
+            
+            searchContentElement.innerHTML = `
+                <h4>${title}</h4>
+                <p>Found ${results.length} mat(s)</p>
+            `;
+            
+            searchResultsElement.style.display = 'block';
+            renderMats(results);
+        }
+
+        function showAllMats() {
+            document.getElementById('searchResults').style.display = 'none';
+            renderMats();
+        }
+
+        function removeMat(id) {
+            if (confirm('Are you sure you want to remove this mat?')) {
+                matManager.removeMat(id);
+                refreshDisplay();
+            }
+        }
+
+        function refreshDisplay() {
+            renderMats();
+            updateStats();
+        }
+
+        // Initial render
+        refreshDisplay();
+    </script>
+</body>
+</html>
